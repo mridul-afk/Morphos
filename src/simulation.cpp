@@ -1,4 +1,3 @@
-
 #include "morphos/simulation.hpp"
 
 #include <algorithm>
@@ -9,10 +8,67 @@
 namespace morphos
 {
 
-  Simulation::Simulation(float width, float height,
-                         std::uint32_t seed)
-      : world_(width, height, 128, 128, seed),
-        seed_(seed)
+  namespace
+  {
+
+    void validate_config(const SimulationConfig &c)
+    {
+      auto valid_nonnegative = [](float x)
+      {
+        return std::isfinite(x) && x >= 0.0f;
+      };
+
+      if (!std::isfinite(c.world_width) ||
+          !std::isfinite(c.world_height) ||
+          c.world_width <= 0.0f ||
+          c.world_height <= 0.0f ||
+          c.grid_width == 0 ||
+          c.grid_height == 0 ||
+          !valid_nonnegative(c.initial_resource_capacity) ||
+          !valid_nonnegative(c.resource_regeneration_rate) ||
+          !valid_nonnegative(c.initial_cell_energy) ||
+          !valid_nonnegative(c.absorption_rate) ||
+          !valid_nonnegative(c.metabolism_rate) ||
+          !valid_nonnegative(c.movement_speed) ||
+          !valid_nonnegative(c.movement_cost))
+      {
+        throw std::invalid_argument(
+            "Invalid SimulationConfig parameters");
+      }
+    }
+
+    SimulationConfig legacy_config(
+        float width,
+        float height,
+        std::uint32_t seed)
+    {
+      SimulationConfig config;
+      config.world_width = width;
+      config.world_height = height;
+      config.seed = seed;
+
+      return config;
+    }
+
+  } // anonymous namespace
+
+  Simulation::Simulation(const SimulationConfig &config)
+      : config_(config),
+        world_(
+            config.world_width,
+            config.world_height,
+            config.grid_width,
+            config.grid_height,
+            config.seed)
+  {
+    validate_config(config_);
+  }
+
+  Simulation::Simulation(
+      float width,
+      float height,
+      std::uint32_t seed)
+      : Simulation(legacy_config(width, height, seed))
   {
   }
 
@@ -21,24 +77,27 @@ namespace morphos
     cells_.clear();
     cells_.reserve(population);
 
-    world_.initialize_resources(100.0f);
+    world_.initialize_resources(
+        config_.initial_resource_capacity);
 
-    std::mt19937 rng(seed_);
+    std::mt19937 rng(config_.seed);
 
     std::uniform_real_distribution<float> x_dist(
-        0.0f, world_.width());
+        0.0f, config_.world_width);
 
     std::uniform_real_distribution<float> y_dist(
-        0.0f, world_.height());
+        0.0f, config_.world_height);
 
     for (std::size_t i = 0; i < population; ++i)
     {
       cells_.emplace_back(
           x_dist(rng),
           y_dist(rng),
-          10.0f,
-          2.0f,
-          1.0f);
+          config_.initial_cell_energy,
+          config_.absorption_rate,
+          config_.metabolism_rate,
+          config_.movement_speed,
+          config_.movement_cost);
     }
 
     timestep_ = 0;
@@ -47,14 +106,18 @@ namespace morphos
   void Simulation::step(float dt)
   {
     if (!std::isfinite(dt) || dt <= 0.0f)
-      throw std::invalid_argument("dt must be positive");
+    {
+      throw std::invalid_argument(
+          "Simulation timestep must be positive");
+    }
 
     for (Cell &cell : cells_)
     {
       cell.update(world_, dt);
     }
 
-    world_.regenerate_resources(0.01f, dt);
+    world_.regenerate_resources(
+        config_.resource_regeneration_rate, dt);
 
     ++timestep_;
   }
@@ -89,6 +152,11 @@ namespace morphos
   const World &Simulation::world() const
   {
     return world_;
+  }
+
+  const SimulationConfig &Simulation::config() const
+  {
+    return config_;
   }
 
 }

@@ -73,10 +73,36 @@ namespace morphos
     if (magnitude <= 1e-6f)
       return;
 
-    // Move in the direction of increasing resources.
-    vx_ = movement_speed_ * gradient.dx / magnitude;
-    vy_ = movement_speed_ * gradient.dy / magnitude;
+    // Reserve energy for metabolism first.
+    const float metabolic_reserve =
+        metabolism_rate_ * dt;
 
+    const float available_energy = std::max(
+        0.0f, energy_ - metabolic_reserve);
+
+    float actual_speed = movement_speed_;
+
+    // Restrict movement according to available energy.
+    if (movement_cost_ > 0.0f)
+    {
+      const float maximum_affordable_speed =
+          std::sqrt(
+              available_energy /
+              (movement_cost_ * dt));
+
+      actual_speed = std::min(
+          movement_speed_,
+          maximum_affordable_speed);
+    }
+
+    if (actual_speed <= 0.0f)
+      return;
+
+    // Normalize the gradient direction.
+    vx_ = actual_speed * gradient.dx / magnitude;
+    vy_ = actual_speed * gradient.dy / magnitude;
+
+    // Apply periodic world boundaries.
     x_ = wrap_position(
         x_ + vx_ * dt, world.width());
 
