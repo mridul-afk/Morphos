@@ -35,6 +35,8 @@ namespace morphos
 
     // Reproducibility
     std::uint32_t seed = 42;
+
+    std::size_t resource_smoothing_passes = 0;
   };
 
   class Simulation

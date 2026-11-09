@@ -102,6 +102,9 @@ namespace morphos
     vx_ = actual_speed * gradient.dx / magnitude;
     vy_ = actual_speed * gradient.dy / magnitude;
 
+    // Accumulate actual travel distance before periodic wrapping.
+    distance_traveled_ += std::hypot(vx_, vy_) * dt;
+
     // Apply periodic world boundaries.
     x_ = wrap_position(
         x_ + vx_ * dt, world.width());
@@ -186,6 +189,11 @@ namespace morphos
   std::uint64_t Cell::age() const
   {
     return age_;
+  }
+
+  float Cell::distance_traveled() const
+  {
+    return distance_traveled_;
   }
 
 }

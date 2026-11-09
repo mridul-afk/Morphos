@@ -191,3 +191,38 @@ TEST(MovementTest, ZeroMovementCostAllowsFreeMovement)
   EXPECT_NEAR(cell.x(), 20.0f, 1e-4f);
   EXPECT_NEAR(cell.energy(), 1.0f, 1e-4f);
 }
+
+TEST(MovementTest, TracksCumulativeDistance)
+{
+  World world(100, 100, 10, 10, 42);
+  world.initialize_resources(50.0f);
+
+  world.consume_resource(5, 15, 1000);
+  world.consume_resource(15, 5, 1000);
+  world.consume_resource(15, 25, 1000);
+
+  Cell cell(15, 15, 10, 0, 0, 2.0f, 0.0f);
+
+  EXPECT_FLOAT_EQ(cell.distance_traveled(), 0.0f);
+
+  cell.update(world, 1.0f);
+
+  EXPECT_NEAR(cell.distance_traveled(), 2.0f, 1e-4f);
+}
+
+TEST(MovementTest, TracksDistanceAcrossPeriodicBoundary)
+{
+  World world(100, 100, 10, 10, 42);
+  world.initialize_resources(50.0f);
+
+  world.consume_resource(85, 15, 1000);
+  world.consume_resource(95, 5, 1000);
+  world.consume_resource(95, 25, 1000);
+
+  Cell cell(95, 15, 10, 0, 0, 10.0f, 0.0f);
+
+  cell.update(world, 1.0f);
+
+  EXPECT_NEAR(cell.x(), 5.0f, 1e-4f);
+  EXPECT_NEAR(cell.distance_traveled(), 10.0f, 1e-4f);
+}

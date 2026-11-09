@@ -34,6 +34,8 @@ namespace morphos
 
     void regenerate_resources(float rate, float dt);
 
+    void smooth_resources(std::size_t passes);
+
     ResourceGradient resource_gradient(float x, float y) const;
     float cell_width() const;
     float cell_height() const;

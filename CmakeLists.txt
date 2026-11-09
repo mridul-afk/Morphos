@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.20)
 
 project(
@@ -65,4 +64,35 @@ if(BUILD_TESTING)
 
   include(GoogleTest)
   gtest_discover_tests(morphos_tests)
+endif()
+
+option(MORPHOS_BUILD_EXPERIMENTS
+  "Build MORPHOS experiment executables"
+  ON
+)
+
+if(MORPHOS_BUILD_EXPERIMENTS)
+  add_executable(morphos_exp001
+    experiments/001_selection/main.cpp
+  )
+
+  target_link_libraries(morphos_exp001
+    PRIVATE morphos_core
+  )
+
+  add_executable(morphos_exp001b
+    experiments/001_selection/sensitivity.cpp
+  )
+
+  target_link_libraries(morphos_exp001b
+    PRIVATE morphos_core
+  )
+
+  add_executable(morphos_exp001c
+    experiments/001_selection/robustness.cpp
+  )
+
+  target_link_libraries(morphos_exp001c
+    PRIVATE morphos_core
+  )
 endif()

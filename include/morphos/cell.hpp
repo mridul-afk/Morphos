@@ -27,6 +27,8 @@ namespace morphos
 
     float energy() const;
 
+    float distance_traveled() const;
+
     bool is_alive() const;
     std::uint64_t age() const;
 
@@ -40,6 +42,8 @@ namespace morphos
     float vy_ = 0.0f;
 
     float energy_;
+
+    float distance_traveled_ = 0.0f;
 
     float absorption_rate_;
     float metabolism_rate_;

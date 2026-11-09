@@ -80,6 +80,9 @@ namespace morphos
     world_.initialize_resources(
         config_.initial_resource_capacity);
 
+    world_.smooth_resources(
+        config_.resource_smoothing_passes);
+
     std::mt19937 rng(config_.seed);
 
     std::uniform_real_distribution<float> x_dist(

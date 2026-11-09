@@ -113,3 +113,34 @@ TEST(WorldTest, SameSeedProducesSameResources)
     }
   }
 }
+
+TEST(WorldTest, SmoothingPreservesApproximateTotalResources)
+{
+  World world(100, 100, 16, 16, 42);
+  world.initialize_resources(100.0f);
+
+  auto total_resources = [&world]()
+  {
+    double total = 0.0;
+
+    for (int y = 0; y < 16; ++y)
+    {
+      for (int x = 0; x < 16; ++x)
+      {
+        total += world.resource_at(
+            (x + 0.5f) * world.cell_width(),
+            (y + 0.5f) * world.cell_height());
+      }
+    }
+
+    return total;
+  };
+
+  const double before = total_resources();
+
+  world.smooth_resources(16);
+
+  const double after = total_resources();
+
+  EXPECT_NEAR(before, after, before * 1e-4);
+}

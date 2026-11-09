@@ -175,4 +175,55 @@ namespace morphos
         (up - down) / (2.0f * hy)};
   }
 
+  void World::smooth_resources(std::size_t passes)
+  {
+    if (passes == 0)
+      return;
+
+    // Sample at the center of each resource tile.
+    const float dx = cell_width();
+    const float dy = cell_height();
+
+    for (std::size_t pass = 0; pass < passes; ++pass)
+    {
+      std::vector<float> next(resources_.size());
+
+      for (std::size_t y = 0; y < grid_height_; ++y)
+      {
+        for (std::size_t x = 0; x < grid_width_; ++x)
+        {
+          const float px =
+              (static_cast<float>(x) + 0.5f) * dx;
+
+          const float py =
+              (static_cast<float>(y) + 0.5f) * dy;
+
+          const float center =
+              resource_at(px, py);
+
+          const float left =
+              resource_at(px - dx, py);
+
+          const float right =
+              resource_at(px + dx, py);
+
+          const float up =
+              resource_at(px, py - dy);
+
+          const float down =
+              resource_at(px, py + dy);
+
+          const float average =
+              (4.0f * center +
+               left + right + up + down) /
+              8.0f;
+
+          next[index(px, py)] = average;
+        }
+      }
+
+      resources_.swap(next);
+    }
+  }
+
 }

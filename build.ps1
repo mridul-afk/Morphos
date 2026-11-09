@@ -26,6 +26,7 @@ param(
   [switch]$Clean,
   [switch]$DebugBuild,
   [switch]$Help,
+  [switch]$Experiment,
 
   [ValidateRange(1, 128)]
   [int]$Jobs = 0
@@ -71,6 +72,7 @@ Options:
     -Run        Build and run MORPHOS simulation
     -Clean      Remove build directory before building
     -Debug      Use Debug instead of Release
+    -Experiment  Build and run Experiment 001
     -Jobs N     Parallel build jobs (default: CMake/MSBuild)
     -Help       Display this help
 
@@ -80,6 +82,7 @@ Examples:
     .\build.ps1 -Run
     .\build.ps1 -Clean -Test
     .\build.ps1 -Debug -Test
+    .\build.ps1 -Experiment
     .\build.ps1 -Jobs 4
 
 "@
@@ -167,6 +170,25 @@ if ($Run) {
     -Executable $ExePath `
     -Arguments @()
 }
+
+
+if ($Experiment) {
+  $ExperimentExe = Join-Path `
+    $BuildDir "$Config\morphos_exp001.exe"
+
+  $ResultsDir = Join-Path `
+    $RootDir "experiments\001_selection\results"
+
+  if (-not (Test-Path $ExperimentExe)) {
+    throw "Experiment executable not found: $ExperimentExe"
+  }
+
+  Invoke-Checked `
+    -Description "Running MORPHOS Experiment 001" `
+    -Executable $ExperimentExe `
+    -Arguments @($ResultsDir)
+}
+
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
