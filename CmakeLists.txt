@@ -53,6 +53,7 @@ if(BUILD_TESTING)
     tests/test_world.cpp
     tests/test_cell.cpp
     tests/test_simulation.cpp
+    tests/test_movement.cpp
   )
 
   target_link_libraries(morphos_tests

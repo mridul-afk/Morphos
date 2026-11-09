@@ -148,4 +148,31 @@ namespace morphos
     }
   }
 
+  float World::cell_width() const
+  {
+    return width_ / static_cast<float>(grid_width_);
+  }
+
+  float World::cell_height() const
+  {
+    return height_ / static_cast<float>(grid_height_);
+  }
+
+  ResourceGradient World::resource_gradient(
+      float x, float y) const
+  {
+    const float hx = cell_width();
+    const float hy = cell_height();
+
+    const float right = resource_at(x + hx, y);
+    const float left = resource_at(x - hx, y);
+
+    const float up = resource_at(x, y + hy);
+    const float down = resource_at(x, y - hy);
+
+    return {
+        (right - left) / (2.0f * hx),
+        (up - down) / (2.0f * hy)};
+  }
+
 }

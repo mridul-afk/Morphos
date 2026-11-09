@@ -8,6 +8,12 @@
 namespace morphos
 {
 
+  struct ResourceGradient
+  {
+    float dx = 0.0f;
+    float dy = 0.0f;
+  };
+
   class World
   {
   public:
@@ -27,6 +33,10 @@ namespace morphos
                            float requested);
 
     void regenerate_resources(float rate, float dt);
+
+    ResourceGradient resource_gradient(float x, float y) const;
+    float cell_width() const;
+    float cell_height() const;
 
   private:
     std::size_t index(float x, float y) const;

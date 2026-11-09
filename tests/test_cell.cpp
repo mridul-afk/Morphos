@@ -35,19 +35,36 @@ TEST(CellTest, AbsorbsEnvironmentalEnergy)
   World world(100, 100, 10, 10);
   world.initialize_resources(50.0f);
 
-  Cell cell(5, 5, 10.0f, 2.0f, 0.0f);
+  // Disable movement to isolate resource absorption.
+  Cell cell(
+      5.0f,  // x
+      5.0f,  // y
+      10.0f, // initial energy
+      2.0f,  // absorption rate
+      0.0f,  // metabolism rate
+      0.0f,  // movement speed
+      0.0f   // movement cost
+  );
 
-  const float before = world.resource_at(5, 5);
   const float initial_energy = cell.energy();
+  const float resources_before =
+      world.resource_at(5.0f, 5.0f);
 
   cell.update(world, 1.0f);
 
-  const float absorbed = before - world.resource_at(5, 5);
+  const float resources_after =
+      world.resource_at(5.0f, 5.0f);
+
+  const float absorbed =
+      resources_before - resources_after;
 
   EXPECT_NEAR(
       cell.energy(),
       initial_energy + absorbed,
       1e-4f);
+
+  EXPECT_GT(absorbed, 0.0f);
+  EXPECT_LE(absorbed, 2.0f);
 }
 
 TEST(CellTest, DiesFromStarvation)
