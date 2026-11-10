@@ -1,4 +1,5 @@
 #include "morphos/cell.hpp"
+#include "morphos/genome.hpp"
 #include "morphos/world.hpp"
 
 #include <algorithm>
@@ -32,28 +33,26 @@ namespace morphos
       : x_(x),
         y_(y),
         energy_(initial_energy),
-        absorption_rate_(absorption_rate),
+        genome_{movement_speed, absorption_rate},
         metabolism_rate_(metabolism_rate),
-        movement_speed_(movement_speed),
         movement_cost_(movement_cost),
         alive_(initial_energy > 0.0f)
   {
     if (!std::isfinite(x) ||
         !std::isfinite(y) ||
         !std::isfinite(initial_energy) ||
-        !std::isfinite(absorption_rate) ||
         !std::isfinite(metabolism_rate) ||
-        !std::isfinite(movement_speed) ||
         !std::isfinite(movement_cost) ||
         initial_energy < 0.0f ||
-        absorption_rate < 0.0f ||
         metabolism_rate < 0.0f ||
-        movement_speed < 0.0f ||
         movement_cost < 0.0f)
     {
       throw std::invalid_argument(
           "Invalid cell parameters");
     }
+
+    // Validate the two heritable traits.
+    genome_.validate();
   }
 
   void Cell::move(const World &world, float dt)
@@ -61,7 +60,11 @@ namespace morphos
     vx_ = 0.0f;
     vy_ = 0.0f;
 
-    if (movement_speed_ == 0.0f)
+    // Movement speed is now genetically encoded.
+    const float movement_speed =
+        genome_.movement_speed;
+
+    if (movement_speed == 0.0f)
       return;
 
     const ResourceGradient gradient =
@@ -80,7 +83,7 @@ namespace morphos
     const float available_energy = std::max(
         0.0f, energy_ - metabolic_reserve);
 
-    float actual_speed = movement_speed_;
+    float actual_speed = movement_speed;
 
     // Restrict movement according to available energy.
     if (movement_cost_ > 0.0f)
@@ -91,7 +94,7 @@ namespace morphos
               (movement_cost_ * dt));
 
       actual_speed = std::min(
-          movement_speed_,
+          movement_speed,
           maximum_affordable_speed);
     }
 
@@ -103,14 +106,17 @@ namespace morphos
     vy_ = actual_speed * gradient.dy / magnitude;
 
     // Accumulate actual travel distance before periodic wrapping.
-    distance_traveled_ += std::hypot(vx_, vy_) * dt;
+    distance_traveled_ +=
+        std::hypot(vx_, vy_) * dt;
 
     // Apply periodic world boundaries.
     x_ = wrap_position(
-        x_ + vx_ * dt, world.width());
+        x_ + vx_ * dt,
+        world.width());
 
     y_ = wrap_position(
-        y_ + vy_ * dt, world.height());
+        y_ + vy_ * dt,
+        world.height());
   }
 
   void Cell::update(World &world, float dt)
@@ -124,12 +130,15 @@ namespace morphos
     if (!alive_ || dt == 0.0f)
       return;
 
-    // Sense and move.
+    // Sense and move using genome-defined movement speed.
     move(world, dt);
 
-    // Absorb resources at the new position.
-    const float absorbed = world.consume_resource(
-        x_, y_, absorption_rate_ * dt);
+    // Resource absorption is now genetically encoded.
+    const float absorbed =
+        world.consume_resource(
+            x_,
+            y_,
+            genome_.absorption_rate * dt);
 
     // Base metabolic expenditure.
     const float metabolic_cost =
@@ -142,12 +151,16 @@ namespace morphos
     const float locomotion_cost =
         movement_cost_ * speed_squared * dt;
 
+    // Update cell energy.
     energy_ = std::max(
         0.0f,
-        energy_ + absorbed - metabolic_cost - locomotion_cost);
+        energy_ + absorbed -
+            metabolic_cost -
+            locomotion_cost);
 
     ++age_;
 
+    // Cell dies when its energy is exhausted.
     if (energy_ <= 0.0f)
     {
       alive_ = false;
@@ -155,7 +168,22 @@ namespace morphos
       vy_ = 0.0f;
     }
   }
+  // Genome access and modification
+  const Genome &Cell::genome() const noexcept
+  {
+    return genome_;
+  }
 
+  void Cell::set_genome(const Genome &genome)
+  {
+    // Validate before assignment so invalid genomes
+    // cannot modify the cell.
+    genome.validate();
+
+    genome_ = genome;
+  }
+
+  // Cell state accessors
   float Cell::x() const
   {
     return x_;

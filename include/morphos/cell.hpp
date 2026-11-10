@@ -1,5 +1,7 @@
 #pragma once
 
+#include "morphos/genome.hpp"
+
 #include <cstdint>
 
 namespace morphos
@@ -32,6 +34,10 @@ namespace morphos
     bool is_alive() const;
     std::uint64_t age() const;
 
+    [[nodiscard]] const Genome &genome() const noexcept;
+
+    void set_genome(const Genome &genome);
+
   private:
     void move(const World &world, float dt);
 
@@ -45,14 +51,14 @@ namespace morphos
 
     float distance_traveled_ = 0.0f;
 
-    float absorption_rate_;
     float metabolism_rate_;
 
-    float movement_speed_;
     float movement_cost_;
 
     bool alive_ = true;
     std::uint64_t age_ = 0;
+
+    Genome genome_;
   };
 
 }
