@@ -183,6 +183,66 @@ namespace morphos
     genome_ = genome;
   }
 
+  std::optional<Cell> Cell::reproduce(
+      std::mt19937 &rng,
+      float energy_threshold,
+      float mutation_probability,
+      float mutation_strength)
+  {
+    // Reproduction threshold must be finite and positive.
+    if (!std::isfinite(energy_threshold) ||
+        energy_threshold <= 0.0f)
+    {
+      throw std::invalid_argument(
+          "Reproduction threshold must be positive and finite");
+    }
+
+    // Validate mutation settings even if reproduction
+    // ultimately cannot take place.
+    if (!std::isfinite(mutation_probability) ||
+        mutation_probability < 0.0f ||
+        mutation_probability > 1.0f ||
+        !std::isfinite(mutation_strength) ||
+        mutation_strength < 0.0f)
+    {
+      throw std::invalid_argument(
+          "Invalid reproduction mutation parameters");
+    }
+
+    // Dead or under-energized cells cannot reproduce.
+    if (!alive_ || energy_ < energy_threshold)
+    {
+      return std::nullopt;
+    }
+
+    // Produce a potentially mutated copy of the genome.
+    // Do this before modifying parent energy.
+    const Genome offspring_genome = genome_.mutated(
+        rng,
+        mutation_probability,
+        mutation_strength);
+
+    const float offspring_energy = energy_ * 0.5f;
+
+    // The offspring begins at the parent's location.
+    // Spatial displacement can be introduced later.
+    Cell offspring(
+        x_,
+        y_,
+        offspring_energy,
+        offspring_genome.absorption_rate,
+        metabolism_rate_,
+        offspring_genome.movement_speed,
+        movement_cost_);
+
+    // Transfer energy from parent to offspring.
+    // Subtraction preserves the total more accurately
+    // than assigning both energies independently.
+    energy_ -= offspring_energy;
+
+    return offspring;
+  }
+
   // Cell state accessors
   float Cell::x() const
   {

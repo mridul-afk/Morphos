@@ -3,6 +3,8 @@
 #include "morphos/genome.hpp"
 
 #include <cstdint>
+#include <optional>
+#include <random>
 
 namespace morphos
 {
@@ -37,6 +39,17 @@ namespace morphos
     [[nodiscard]] const Genome &genome() const noexcept;
 
     void set_genome(const Genome &genome);
+
+    // Attempt asexual reproduction.
+    // Returns an offspring when the parent has sufficient
+    // energy, or std::nullopt otherwise.
+    // A successful reproduction divides the parent's
+    // energy equally between parent and offspring.
+    [[nodiscard]] std::optional<Cell> reproduce(
+        std::mt19937 &rng,
+        float energy_threshold,
+        float mutation_probability = 0.1f,
+        float mutation_strength = 0.1f);
 
   private:
     void move(const World &world, float dt);
