@@ -2,7 +2,9 @@
 
 #include "morphos/cell.hpp"
 #include "morphos/world.hpp"
+#include "morphos/lineage.hpp"
 
+#include <unordered_map>
 #include <cstddef>
 #include <cstdint>
 #include <random>
@@ -81,6 +83,12 @@ namespace morphos
     const World &world() const;
     const SimulationConfig &config() const;
 
+    [[nodiscard]] const std::vector<LineageRecord> &
+    lineage_records() const noexcept;
+
+    [[nodiscard]] const LineageRecord *
+    find_lineage(std::uint64_t id) const noexcept;
+
   private:
     SimulationConfig config_;
 
@@ -93,6 +101,23 @@ namespace morphos
     std::uint64_t timestep_ = 0;
     std::uint64_t total_births_ = 0;
     std::uint64_t total_deaths_ = 0;
+
+    std::uint64_t next_cell_id_ = 1;
+
+    std::vector<LineageRecord> lineage_records_;
+
+    std::unordered_map<std::uint64_t, std::size_t>
+        lineage_index_;
+
+    void register_birth(
+        Cell &cell,
+        std::uint64_t parent_id,
+        std::uint64_t generation,
+        std::uint64_t birth_timestep);
+
+    void register_death(
+        std::uint64_t cell_id,
+        std::uint64_t death_timestep);
   };
 
 }

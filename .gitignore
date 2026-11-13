@@ -40,6 +40,7 @@ venv/
 # Experiments
 experiments/**/results/
 experiments/**/output/
+experiments/**/002_evolution/results_002A/
 
 # Profiling
 *.nsys-rep

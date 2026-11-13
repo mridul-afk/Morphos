@@ -16,6 +16,7 @@ add_library(morphos_core
   src/genome.cpp
   src/world.cpp
   src/simulation.cpp
+  src/lineage_analytics.cpp
 )
 
 target_include_directories(morphos_core
@@ -57,6 +58,9 @@ if(BUILD_TESTING)
     tests/test_genome.cpp
     tests/test_reproduction.cpp
     tests/test_population.cpp
+    tests/test_lineage.cpp
+    tests/test_lineage_integration.cpp
+    tests/test_lineage_analytics.cpp
   )
 
   target_link_libraries(morphos_tests
@@ -97,5 +101,17 @@ if(MORPHOS_BUILD_EXPERIMENTS)
 
   target_link_libraries(morphos_exp001c
     PRIVATE morphos_core
+  )
+
+  add_executable(morphos_exp002a
+    experiments/002_evolution/main.cpp
+  )
+
+  target_link_libraries(morphos_exp002a
+    PRIVATE morphos_core
+  )
+
+  target_compile_features(morphos_exp002a
+    PRIVATE cxx_std_17
   )
 endif()

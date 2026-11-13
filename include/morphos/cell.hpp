@@ -51,6 +51,15 @@ namespace morphos
         float mutation_probability = 0.1f,
         float mutation_strength = 0.1f);
 
+    [[nodiscard]] std::uint64_t id() const noexcept;
+    [[nodiscard]] std::uint64_t parent_id() const noexcept;
+    [[nodiscard]] std::uint64_t generation() const noexcept;
+
+    void set_lineage(
+        std::uint64_t id,
+        std::uint64_t parent_id,
+        std::uint64_t generation);
+
   private:
     void move(const World &world, float dt);
 
@@ -72,6 +81,10 @@ namespace morphos
     std::uint64_t age_ = 0;
 
     Genome genome_;
+
+    std::uint64_t id_ = 0;
+    std::uint64_t parent_id_ = 0;
+    std::uint64_t generation_ = 0;
   };
 
 }

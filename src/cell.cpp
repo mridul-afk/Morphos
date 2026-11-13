@@ -284,4 +284,47 @@ namespace morphos
     return distance_traveled_;
   }
 
+  std::uint64_t Cell::id() const noexcept
+  {
+    return id_;
+  }
+
+  std::uint64_t Cell::parent_id() const noexcept
+  {
+    return parent_id_;
+  }
+
+  std::uint64_t Cell::generation() const noexcept
+  {
+    return generation_;
+  }
+
+  void Cell::set_lineage(
+      std::uint64_t id,
+      std::uint64_t parent_id,
+      std::uint64_t generation)
+  {
+    if (id == 0 || id == parent_id)
+    {
+      throw std::invalid_argument(
+          "Invalid cell lineage identifiers");
+    }
+
+    if (generation == 0 && parent_id != 0)
+    {
+      throw std::invalid_argument(
+          "Founding cells cannot have a parent");
+    }
+
+    if (generation > 0 && parent_id == 0)
+    {
+      throw std::invalid_argument(
+          "Descendant cells must have a parent");
+    }
+
+    id_ = id;
+    parent_id_ = parent_id;
+    generation_ = generation;
+  }
+
 }
